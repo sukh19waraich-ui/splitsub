@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6d5bf5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SplitSub">
+<title>SplitSub — Split shared subscriptions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f5fb;
+    --card: #ffffff;
+    --ink: #16151f;
+    --muted: #6b6b80;
+    --accent: #6d5bf5;
+    --accent-dark: #5843e6;
+    --accent-light: #eeebfe;
+    --accent2: #17b3a3;
+    --border: #e7e6f2;
+    --danger: #e5484d;
+    --danger-light: #fdecec;
+    --shadow: 0 1px 2px rgba(23,20,60,0.04), 0 8px 24px rgba(23,20,60,0.06);
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(1000px 420px at 50% -120px, #ece8ff 0%, rgba(236,232,255,0) 60%),
+      var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    padding: 40px 20px 32px;
+    text-align: center;
+  }
+  header .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    font-weight: 800;
+    font-size: 18px;
+    margin-bottom: 10px;
+    box-shadow: 0 6px 16px rgba(109,91,245,0.35);
+  }
+  header h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+  header p { margin: 0; color: var(--muted); font-size: 14.5px; }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 8px 16px 60px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    margin-top: 0; font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-light); color: var(--accent-dark);
+    border: none; padding: 5px 10px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer;
+    margin-top: 0; box-shadow: none; vertical-align: middle;
+  }
+  .copy-btn svg { width: 13px; height: 13px; }
+  .group-header-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  label { display:block; font-size: 13px; font-weight: 500; color: var(--muted); margin: 12px 0 5px; }
+  input, select {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 16px; /* keep >=16px: iOS Safari auto-zooms on focus for anything smaller */
+    font-family: inherit;
+    background: #fbfbfe;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(109,91,245,0.15);
+    background: white;
+  }
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b6b80'><path fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.19l3.71-3.96a.75.75 0 111.1 1.02l-4.25 4.5a.75.75 0 01-1.1 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px;
+  }
+  button {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: white;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 14.5px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 14px;
+    box-shadow: 0 4px 12px rgba(109,91,245,0.28);
+    transition: transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  button:hover { box-shadow: 0 6px 16px rgba(109,91,245,0.36); }
+  button:active { transform: translateY(1px); }
+  button.secondary {
+    background: var(--accent-light);
+    color: var(--accent-dark);
+    box-shadow: none;
+  }
+  button.secondary:hover { box-shadow: none; background: #e4dffd; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  .member-row, .share-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .pill {
+    display: inline-block;
+    background: var(--accent-light);
+    color: var(--accent-dark);
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    margin: 2px 4px 2px 0;
+  }
+  .sub-item {
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 10px;
+    background: #fcfcff;
+  }
+  .sub-item strong { font-size: 15px; }
+  .sub-item .cost { color: var(--accent2); font-weight: 700; }
+  .msg-box {
+    white-space: pre-wrap;
+    background: #fbfbfe;
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .hidden { display: none; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .code-display {
+    font-family: "SF Mono", Menlo, monospace;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 3px;
+    background: var(--accent-light);
+    color: var(--accent-dark);
+    padding: 7px 14px;
+    border-radius: 10px;
+    display: inline-block;
+  }
+  .error { color: var(--danger); font-size: 13px; margin-top: 6px; font-weight: 500; }
+  button.danger {
+    background: var(--danger-light);
+    color: var(--danger);
+    box-shadow: none;
+  }
+  button.danger:hover { background: #fbdcdc; box-shadow: none; }
+  .banner {
+    background: linear-gradient(135deg, var(--accent-light), #e3f7f4);
+    border: 1.5px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--accent-dark);
+  }
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(22,21,31,0.45);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; z-index: 50;
+  }
+  .modal-card {
+    background: var(--card); border-radius: 16px; padding: 24px;
+    max-width: 380px; width: 100%; box-shadow: var(--shadow);
+  }
+  .modal-card h3 { margin: 0 0 8px; font-size: 17px; }
+  .modal-card p { margin: 0 0 4px; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .modal-card .price { font-size: 26px; font-weight: 800; margin: 14px 0 4px; }
+  .modal-card .price span { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .modal-backdrop.hidden { display: none; }
+
+  @media (max-width: 480px) {
+    header { padding: 28px 16px 22px; }
+    header h1 { font-size: 22px; }
+    header p { font-size: 13.5px; }
+    .wrap { padding: 4px 12px 48px; }
+    .card { padding: 18px; border-radius: 14px; }
+    button { width: 100%; }
+    button.secondary, .copy-btn, #subCancelBtn, .sub-item button { width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-badge">$</div>
+  <h1>SplitSub</h1>
+  <p>Split recurring subscriptions with friends &amp; family — and actually get reminded to pay.</p>
+</header>
+
+<div class="wrap">
+
+  <div id="upgradeBanner"></div>
+
+  <div class="card" id="entryCard">
+    <h2>Get started</h2>
+    <label>Your email</label>
+    <input id="userEmail" type="email" placeholder="you@email.com" />
+    <label style="margin-top:14px;">Create a new group</label>
+    <input id="newGroupName" placeholder="e.g. Apartment 4B, The Smith Family" />
+    <button onclick="createGroup()">Create group</button>
+    <p class="muted" style="margin-top:6px;">First group is free. $2.99/mo for unlimited groups.</p>
+
+    <label style="margin-top:18px;">Already have a group code?</label>
+    <input id="joinCode" placeholder="e.g. AB12CD" style="text-transform:uppercase" />
+    <button class="secondary" onclick="joinGroup()">Open group</button>
+    <div id="entryError" class="error"></div>
+  </div>
+
+  <div id="groupCard" class="hidden">
+    <div class="card">
+      <div class="group-header-row">
+        <h2 id="groupTitle" style="font-size:18px;"></h2>
+      </div>
+      <p class="muted">Share this code with your group:
+        <span class="code-display" id="groupCodeDisplay"></span>
+        <button class="copy-btn" onclick="copyGroupCode(this)">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="10" height="12" rx="2"/><path d="M4 14V4a2 2 0 012-2h8" stroke-linecap="round"/></svg>
+          Copy
+        </button>
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="3"/><path d="M1.5 17c0-3 2.5-5.5 5.5-5.5S12.5 14 12.5 17" stroke-linecap="round"/><circle cx="14.5" cy="7" r="2.3"/><path d="M14 11.5c2.4.3 4 2.4 4 5.5" stroke-linecap="round"/></svg>
+        Members
+      </h2>
+      <div id="memberList"></div>
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>Name</label>
+          <input id="memberName" placeholder="Sam" />
+        </div>
+        <div>
+          <label>Email or phone (optional)</label>
+          <input id="memberContact" placeholder="sam@email.com" />
+        </div>
+      </div>
+      <button onclick="addMember()">Add member</button>
+    </div>
+
+    <div class="card">
+      <h2>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="4.5" width="17" height="12" rx="2"/><path d="M1.5 8.5h17" stroke-linecap="round"/></svg>
+        Subscriptions
+      </h2>
+      <div id="subList"></div>
+
+      <label style="margin-top:14px;">Subscription name</label>
+      <input id="subName" placeholder="Netflix Premium" />
+      <div class="row">
+        <div>
+          <label>Monthly cost ($)</label>
+          <input id="subCost" type="number" step="0.01" placeholder="19.99" />
+        </div>
+        <div>
+          <label>Billing day of month</label>
+          <input id="subBillingDay" type="number" min="1" max="28" value="1" />
+        </div>
+      </div>
+      <label>Paid by</label>
+      <select id="subOwner"></select>
+
+      <label style="margin-top:10px;">Split between (equal split by default)</label>
+      <div id="shareBuilder"></div>
+      <button class="secondary" onclick="splitEqually()">Split equally among all members</button>
+      <button id="subSubmitBtn" onclick="addSubscription()">Add subscription</button>
+      <button id="subCancelBtn" class="secondary hidden" onclick="cancelEditSubscription()">Cancel</button>
+      <div id="subError" class="error"></div>
+    </div>
+
+    <div class="card">
+      <h2>
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2.5c-3 0-5 2.2-5 5.5v3l-1.5 2.5h13L15 11V8c0-3.3-2-5.5-5-5.5z" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 16a2 2 0 004 0" stroke-linecap="round"/></svg>
+        Monthly reminders
+      </h2>
+      <p class="muted">Generates a ready-to-send message + total owed for each person. Copy it into a text, email, or WhatsApp — SplitSub doesn't send it for you (yet), so nothing goes out without you seeing it first.</p>
+      <button onclick="generateReminders()">Generate this month's reminders</button>
+      <div id="reminderOutput"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="upgradeModal" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <h3>You've used your free group</h3>
+    <p>Each email gets one free group. Upgrade to SplitSub Unlimited to create as many groups as you need.</p>
+    <div class="price">$2.99<span>/month</span></div>
+    <button onclick="startUpgrade()">Upgrade now</button>
+    <button class="secondary" onclick="closeUpgradeModal()">Maybe later</button>
+    <div id="upgradeError" class="error"></div>
+  </div>
+</div>
+
+<script>
+let currentCode = null;
+let currentGroup = null;
+let editingSubId = null;
+
+// Remember the user's email locally so they don't have to retype it every
+// visit. This is just a convenience -- SplitSub has no passwords/login.
+(function initEmail() {
+  const saved = localStorage.getItem('splitsub_email');
+  if (saved) document.getElementById('userEmail').value = saved;
+})();
+
+(function handleUpgradeRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const banner = document.getElementById('upgradeBanner');
+  if (params.get('upgraded') === '1') {
+    banner.innerHTML = '<div class="banner">🎉 You\'re upgraded! You can now create unlimited groups with this email.</div>';
+  } else if (params.get('upgrade_cancelled') === '1') {
+    banner.innerHTML = '<div class="banner">Upgrade cancelled — no charge was made.</div>';
+  }
+  if (params.has('upgraded') || params.has('upgrade_cancelled')) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+})();
+
+function closeUpgradeModal() {
+  document.getElementById('upgradeModal').classList.add('hidden');
+  document.getElementById('upgradeError').textContent = '';
+}
+
+async function startUpgrade() {
+  const email = document.getElementById('userEmail').value.trim().toLowerCase();
+  const errBox = document.getElementById('upgradeError');
+  if (!email) { errBox.textContent = 'Enter your email first'; return; }
+  errBox.textContent = '';
+  const res = await fetch('/api/billing/checkout', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email})
+  });
+  const data = await res.json();
+  if (data.error) { errBox.textContent = data.error; return; }
+  window.location.href = data.url;
+}
+
+async function createGroup() {
+  const name = document.getElementById('newGroupName').value.trim();
+  const email = document.getElementById('userEmail').value.trim().toLowerCase();
+  showEntryError('');
+  if (!email) { showEntryError('Enter your email first'); return; }
+  if (!name) { showEntryError('Enter a group name'); return; }
+  localStorage.setItem('splitsub_email', email);
+
+  const res = await fetch('/api/groups', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name, email})
+  });
+  const data = await res.json();
+  if (res.status === 402 || data.error === 'upgrade_required') {
+    document.getElementById('upgradeModal').classList.remove('hidden');
+    return;
+  }
+  if (data.error) { showEntryError(data.error); return; }
+  currentCode = data.code;
+  loadGroup();
+}
+
+async function joinGroup() {
+  const code = document.getElementById('joinCode').value.trim().toUpperCase();
+  if (!code) { showEntryError('Enter a group code'); return; }
+  currentCode = code;
+  loadGroup();
+}
+
+function showEntryError(msg) {
+  document.getElementById('entryError').textContent = msg;
+}
+
+function copyGroupCode(btn) {
+  navigator.clipboard.writeText(currentCode || '');
+  const original = btn.innerHTML;
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.innerHTML = original, 1500);
+}
+
+async function loadGroup() {
+  const res = await fetch(`/api/groups/${currentCode}`);
+  const data = await res.json();
+  if (data.error) { showEntryError(data.error); return; }
+  currentGroup = data;
+  document.getElementById('entryCard').classList.add('hidden');
+  document.getElementById('groupCard').classList.remove('hidden');
+  document.getElementById('groupTitle').textContent = data.name;
+  document.getElementById('groupCodeDisplay').textContent = data.code;
+  renderMembers();
+  renderSubs();
+  document.getElementById('reminderOutput').innerHTML = '';
+}
+
+function renderMembers() {
+  const list = document.getElementById('memberList');
+  if (currentGroup.members.length === 0) {
+    list.innerHTML = '<p class="muted">No members yet — add yourself and your group first.</p>';
+  } else {
+    list.innerHTML = currentGroup.members.map(m => `<span class="pill">${m.name}</span>`).join('');
+  }
+  const ownerSel = document.getElementById('subOwner');
+  ownerSel.innerHTML = currentGroup.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  renderShareBuilder();
+}
+
+function renderShareBuilder() {
+  const box = document.getElementById('shareBuilder');
+  box.innerHTML = currentGroup.members.map(m => `
+    <div class="share-row">
+      <span style="flex:1">${m.name}</span>
+      <input type="number" class="share-input" data-member="${m.id}" style="width:80px" value="0" min="0" max="100" /> %
+    </div>
+  `).join('');
+}
+
+function splitEqually() {
+  const inputs = document.querySelectorAll('.share-input');
+  const n = inputs.length;
+  if (n === 0) return;
+  const each = (100 / n).toFixed(2);
+  inputs.forEach((el, i) => {
+    el.value = i === n - 1 ? (100 - each * (n - 1)).toFixed(2) : each;
+  });
+}
+
+function renderSubs() {
+  const list = document.getElementById('subList');
+  if (currentGroup.subscriptions.length === 0) {
+    list.innerHTML = '<p class="muted">No subscriptions yet.</p>';
+    return;
+  }
+  list.innerHTML = currentGroup.subscriptions.map(s => {
+    const memberName = id => (currentGroup.members.find(m => m.id === id) || {}).name || '?';
+    const splitsText = s.splits.map(sp => `${memberName(sp.member_id)}: $${sp.amount.toFixed(2)} (${sp.share_percent}%)`).join(', ');
+    return `<div class="sub-item">
+      <strong>${s.name}</strong> — <span class="cost">$${s.monthly_cost.toFixed(2)}/mo</span>
+      <div class="muted">Paid by ${memberName(s.owner_member_id)}, bills on day ${s.billing_day}</div>
+      <div class="muted">${splitsText}</div>
+      <div style="margin-top:10px;">
+        <button class="secondary" style="margin-top:0; padding:9px 16px; font-size:13.5px;" onclick="startEditSubscription(${s.id})">Edit</button>
+        <button class="danger" style="margin-top:0; padding:9px 16px; font-size:13.5px;" onclick="deleteSubscription(${s.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function startEditSubscription(subId) {
+  const s = currentGroup.subscriptions.find(x => x.id === subId);
+  if (!s) return;
+  editingSubId = subId;
+  document.getElementById('subName').value = s.name;
+  document.getElementById('subCost').value = s.monthly_cost;
+  document.getElementById('subBillingDay').value = s.billing_day;
+  document.getElementById('subOwner').value = s.owner_member_id;
+  document.querySelectorAll('.share-input').forEach(el => {
+    const memberId = parseInt(el.dataset.member);
+    const found = s.splits.find(sp => sp.member_id === memberId);
+    el.value = found ? found.share_percent : 0;
+  });
+  document.getElementById('subSubmitBtn').textContent = 'Save changes';
+  document.getElementById('subCancelBtn').classList.remove('hidden');
+  document.getElementById('subName').scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+function cancelEditSubscription() {
+  editingSubId = null;
+  document.getElementById('subName').value = '';
+  document.getElementById('subCost').value = '';
+  document.getElementById('subBillingDay').value = '1';
+  document.querySelectorAll('.share-input').forEach(el => el.value = 0);
+  document.getElementById('subSubmitBtn').textContent = 'Add subscription';
+  document.getElementById('subCancelBtn').classList.add('hidden');
+}
+
+async function deleteSubscription(subId) {
+  if (!confirm('Delete this subscription? This cannot be undone.')) return;
+  await fetch(`/api/groups/${currentCode}/subscriptions/${subId}`, { method: 'DELETE' });
+  if (editingSubId === subId) cancelEditSubscription();
+  await loadGroup();
+}
+
+async function addMember() {
+  const name = document.getElementById('memberName').value.trim();
+  const contact = document.getElementById('memberContact').value.trim();
+  if (!name) return;
+  await fetch(`/api/groups/${currentCode}/members`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name, contact})
+  });
+  document.getElementById('memberName').value = '';
+  document.getElementById('memberContact').value = '';
+  await loadGroup();
+}
+
+async function addSubscription() {
+  const name = document.getElementById('subName').value.trim();
+  const cost = parseFloat(document.getElementById('subCost').value);
+  const billing_day = parseInt(document.getElementById('subBillingDay').value || '1');
+  const owner_member_id = parseInt(document.getElementById('subOwner').value);
+  const shares = Array.from(document.querySelectorAll('.share-input')).map(el => ({
+    member_id: parseInt(el.dataset.member),
+    share_percent: parseFloat(el.value || '0')
+  })).filter(s => s.share_percent > 0);
+
+  const errBox = document.getElementById('subError');
+  errBox.textContent = '';
+  if (!name || isNaN(cost)) { errBox.textContent = 'Enter a name and cost'; return; }
+  if (shares.length === 0) { errBox.textContent = 'Set at least one share percentage'; return; }
+
+  const url = editingSubId
+    ? `/api/groups/${currentCode}/subscriptions/${editingSubId}`
+    : `/api/groups/${currentCode}/subscriptions`;
+  const method = editingSubId ? 'PUT' : 'POST';
+
+  const res = await fetch(url, {
+    method, headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name, monthly_cost: cost, owner_member_id, billing_day, shares})
+  });
+  const data = await res.json();
+  if (data.error) { errBox.textContent = data.error; return; }
+  cancelEditSubscription();
+  await loadGroup();
+}
+
+async function generateReminders() {
+  const res = await fetch(`/api/groups/${currentCode}/reminder`);
+  const data = await res.json();
+  const box = document.getElementById('reminderOutput');
+  if (!data.messages || data.messages.length === 0) {
+    box.innerHTML = '<p class="muted">Nothing to remind yet — add subscriptions and splits first.</p>';
+    return;
+  }
+  box.innerHTML = `<p class="muted">${data.month}</p>` + data.messages.map(m => `
+    <div>
+      <strong>${m.name}</strong> ${m.contact ? '(' + m.contact + ')' : ''}
+      <div class="msg-box">${m.message}</div>
+      <button class="secondary" onclick="copyMsg(this)" data-msg="${encodeURIComponent(m.message)}">Copy message</button>
+    </div>
+  `).join('');
+}
+
+function copyMsg(btn) {
+  const msg = decodeURIComponent(btn.dataset.msg);
+  navigator.clipboard.writeText(msg);
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy message', 1500);
+}
+</script>
+
+</body>
+</html>
